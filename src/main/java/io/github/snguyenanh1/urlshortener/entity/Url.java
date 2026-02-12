@@ -3,7 +3,6 @@ package io.github.snguyenanh1.urlshortener.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,7 +28,7 @@ public class Url {
     @URL(message = "Invalid URL")
     @NotBlank(message = "URL cannot be blank")
     @Column(nullable = false)
-    private String originalUrl;
+    private String url;
 
     @Column(nullable = false, unique = true)
     private String shortCode;

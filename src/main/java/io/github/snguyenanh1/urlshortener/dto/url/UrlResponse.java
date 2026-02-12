@@ -14,6 +14,7 @@ import java.time.OffsetDateTime;
 @Builder
 public class UrlResponse {
 
+    private Long id;
 
     private String originalUrl;
 

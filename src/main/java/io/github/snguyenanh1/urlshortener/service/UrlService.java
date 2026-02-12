@@ -2,68 +2,125 @@ package io.github.snguyenanh1.urlshortener.service;
 
 import io.github.snguyenanh1.urlshortener.dto.url.UrlRequest;
 import io.github.snguyenanh1.urlshortener.dto.url.UrlResponse;
+import io.github.snguyenanh1.urlshortener.dto.url.UrlUpdate;
 import io.github.snguyenanh1.urlshortener.entity.Url;
+import io.github.snguyenanh1.urlshortener.exception.*;
+import io.github.snguyenanh1.urlshortener.repository.UrlRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.util.Base64;
+import java.util.Optional;
 
 @Service
 public class UrlService {
-    // TODO: set appropriate base url
-    private final static String baseUrl = "https://abc.xyz/";
+    // TODO: set appropriate base url/ using @Value
+    private static final String baseUrl = "https://abc.xyz/";
+    private static final String appendToUrl = "collision";
+    private final UrlRepository urlRepository;
 
-    // TODO: other CRUD operations
+    @Autowired
+    public UrlService(UrlRepository urlRepository) {
+        this.urlRepository = urlRepository;
+    }
 
+    @Transactional
     public UrlResponse createShortUrl(UrlRequest urlRequest) {
-        Url url = mapToUrlFromUrlRequest(urlRequest);
-
+        // TODO: authentication logic here
+        Url url = mapToUrl(urlRequest);
         if (url.getShortCode() == null) {
-            String shortCode = generateShortCode(urlRequest.getOriginalUrl());
+            String originalUrl = urlRequest.getUrl();
+            String shortCode = generateShortCode(urlRequest.getUrl());
+            while (urlRepository.existsByShortCode(shortCode)) {
+                originalUrl += appendToUrl;
+                shortCode = generateShortCode(originalUrl);
+            }
             url.setShortCode(shortCode);
-            // TODO: check for hash collision in DB, if there is -> hash Url + predefined String until resolved
+        } else {
+            if (urlRepository.existsByShortCode(urlRequest.getShortCode())) {
+                throw new DuplicateShortCodeException("Duplicate short code");
+            }
         }
-
-        // TODO: save to DB
-
-        return mapToUrlResponseFromUrl(url);
-
+        url.setCreatedAt(OffsetDateTime.now());
+        if (url.getExpiresAt() == null) {
+            url.setExpiresAt(url.getCreatedAt().plusDays(7));
+        }
+        urlRepository.save(url);
+        return mapToUrlResponse(url);
     }
 
-    private Url mapToUrlFromUrlRequest(UrlRequest urlRequest) {
-        Url.UrlBuilder builder = Url.builder();
-        builder.originalUrl(urlRequest.getOriginalUrl());
-        OffsetDateTime now = OffsetDateTime.now();
-        builder.createdAt(now);
-        builder.expiresAt(now.plusDays(7));
-        // TODO: custom short code and expiry date
-        return builder.build();
+    public UrlResponse getShortUrl(String shortCode) {
+        Optional<Url> optionalUrl = urlRepository.findByShortCode(shortCode);
+        if (optionalUrl.isPresent()) {
+            Url url = optionalUrl.get();
+            if (OffsetDateTime.now().isAfter(url.getExpiresAt())) {
+                throw new ExpiredUrlException("Expired url");
+            }
+            return mapToUrlResponse(url);
+        } else {
+            throw new ShortCodeNotFoundException("No such short code");
+        }
     }
 
-    private UrlResponse mapToUrlResponseFromUrl(Url url) {
-        UrlResponse.UrlResponseBuilder builder = UrlResponse.builder();
-        builder.originalUrl(url.getOriginalUrl())
+    @Transactional
+    public UrlResponse updateShortUrl(UrlUpdate urlUpdate) {
+        Url url = urlRepository.findById(urlUpdate.getId())
+                .orElseThrow(() -> new ShortCodeNotFoundException("No such short code"));
+        String newShortCode = urlUpdate.getShortCode();
+        if (!newShortCode.equals(url.getShortCode())) {
+            if (urlRepository.existsByShortCode(newShortCode)) {
+                throw new DuplicateShortCodeException("Duplicate short code");
+            } else {
+                url.setShortCode(newShortCode);
+            }
+        }
+        if (urlUpdate.getExpiresAt() != null
+                && urlUpdate.getExpiresAt().isAfter(OffsetDateTime.now())) {
+            url.setExpiresAt(urlUpdate.getExpiresAt());
+        }
+        urlRepository.save(url);
+        return mapToUrlResponse(url);
+    }
+
+    @Transactional
+    public void deleteShortUrl(String shortCode) {
+        Url url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new ShortCodeNotFoundException("No such short code"));
+        urlRepository.delete(url);
+    }
+
+    private Url mapToUrl(UrlRequest urlRequest) {
+        return Url.builder()
+                .url(urlRequest.getUrl())
+                .shortCode(urlRequest.getShortCode())
+                .expiresAt(urlRequest.getExpiresAt())
+                .build();
+    }
+
+    private UrlResponse mapToUrlResponse(Url url) {
+        return UrlResponse.builder()
+                .originalUrl(url.getUrl())
                 .shortCode(url.getShortCode())
                 .shortUrl(baseUrl + url.getShortCode())
                 .createdAt(url.getCreatedAt())
-                .expiresAt(url.getExpiresAt());
-        return builder.build();
+                .expiresAt(url.getExpiresAt()).build();
     }
 
     private String generateShortCode(String originalUrl) {
-       try {
-           MessageDigest md = MessageDigest.getInstance("MD5");
-           md.update(originalUrl.getBytes());
-           md.update(String.valueOf(System.nanoTime()).getBytes());
-           byte[] digest = md.digest();
-
-           return Base64.getUrlEncoder().withoutPadding().encodeToString(digest).substring(0, 8);
-
-       } catch (NoSuchAlgorithmException e) {
-           throw new RuntimeException("Hash algorithm error", e);
-       }
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(originalUrl.getBytes(StandardCharsets.UTF_8));
+            md.update(String.valueOf(System.nanoTime()).getBytes(StandardCharsets.UTF_8));
+            byte[] digest = md.digest();
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest).substring(0, 8);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Hash algorithm error", e);
+        }
     }
 
 }
