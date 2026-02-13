@@ -8,6 +8,7 @@ import io.github.snguyenanh1.urlshortener.exception.*;
 import io.github.snguyenanh1.urlshortener.repository.UrlRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -19,19 +20,21 @@ import java.util.Optional;
 
 @Service
 public class UrlService {
-    // TODO: set appropriate base url/ using @Value
-    private static final String baseUrl = "https://abc.xyz/";
+
+    private final String baseUrl;
     private static final String appendToUrl = "collision";
     private final UrlRepository urlRepository;
 
+    //TODO: authentication logic
+
     @Autowired
-    public UrlService(UrlRepository urlRepository) {
+    public UrlService(UrlRepository urlRepository, @Value("${short.url.domain}") String baseUrl ) {
         this.urlRepository = urlRepository;
+        this.baseUrl = baseUrl;
     }
 
     @Transactional
     public UrlResponse createShortUrl(UrlRequest urlRequest) {
-        // TODO: authentication logic here
         Url url = mapToUrl(urlRequest);
         if (url.getShortCode() == null) {
             String originalUrl = urlRequest.getUrl();
@@ -43,7 +46,7 @@ public class UrlService {
             url.setShortCode(shortCode);
         } else {
             if (urlRepository.existsByShortCode(urlRequest.getShortCode())) {
-                throw new DuplicateShortCodeException("Duplicate short code");
+                throw new ExistingShortCodeException("Existing short code");
             }
         }
         url.setCreatedAt(OffsetDateTime.now());
@@ -54,6 +57,7 @@ public class UrlService {
         return mapToUrlResponse(url);
     }
 
+    @Transactional
     public UrlResponse getShortUrl(String shortCode) {
         Optional<Url> optionalUrl = urlRepository.findByShortCode(shortCode);
         if (optionalUrl.isPresent()) {
@@ -74,7 +78,7 @@ public class UrlService {
         String newShortCode = urlUpdate.getShortCode();
         if (!newShortCode.equals(url.getShortCode())) {
             if (urlRepository.existsByShortCode(newShortCode)) {
-                throw new DuplicateShortCodeException("Duplicate short code");
+                throw new ExistingShortCodeException("Duplicate short code");
             } else {
                 url.setShortCode(newShortCode);
             }
@@ -117,7 +121,7 @@ public class UrlService {
             md.update(originalUrl.getBytes(StandardCharsets.UTF_8));
             md.update(String.valueOf(System.nanoTime()).getBytes(StandardCharsets.UTF_8));
             byte[] digest = md.digest();
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest).substring(0, 8);
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest).substring(0, 7);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Hash algorithm error", e);
         }

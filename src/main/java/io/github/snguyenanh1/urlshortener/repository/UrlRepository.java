@@ -13,6 +13,4 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     boolean existsByShortCode(String shortCode);
     Optional<Url> findByShortCode(String shortCode);
     Optional<Url> findByUrl(String url);
-
-    Long url(@URL(message = "Invalid URL") @NotBlank(message = "URL cannot be blank") String url);
 }
