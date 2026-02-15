@@ -21,16 +21,14 @@ import java.util.Optional;
 @Service
 public class UrlService {
 
-    private final String baseUrl;
     private static final String appendToUrl = "collision";
     private final UrlRepository urlRepository;
 
     //TODO: authentication logic
 
     @Autowired
-    public UrlService(UrlRepository urlRepository, @Value("${short.url.domain}") String baseUrl ) {
+    public UrlService(UrlRepository urlRepository) {
         this.urlRepository = urlRepository;
-        this.baseUrl = baseUrl;
     }
 
     @Transactional
@@ -46,7 +44,7 @@ public class UrlService {
             url.setShortCode(shortCode);
         } else {
             if (urlRepository.existsByShortCode(urlRequest.getShortCode())) {
-                throw new ExistingShortCodeException("Existing short code");
+                throw new InvalidShortCodeException("Existing short code");
             }
         }
         url.setCreatedAt(OffsetDateTime.now());
@@ -78,7 +76,7 @@ public class UrlService {
         String newShortCode = urlUpdate.getShortCode();
         if (!newShortCode.equals(url.getShortCode())) {
             if (urlRepository.existsByShortCode(newShortCode)) {
-                throw new ExistingShortCodeException("Duplicate short code");
+                throw new InvalidShortCodeException("Duplicate short code");
             } else {
                 url.setShortCode(newShortCode);
             }
@@ -110,7 +108,6 @@ public class UrlService {
         return UrlResponse.builder()
                 .originalUrl(url.getUrl())
                 .shortCode(url.getShortCode())
-                .shortUrl(baseUrl + url.getShortCode())
                 .createdAt(url.getCreatedAt())
                 .expiresAt(url.getExpiresAt()).build();
     }

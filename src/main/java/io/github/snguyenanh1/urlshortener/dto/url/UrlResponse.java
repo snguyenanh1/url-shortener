@@ -20,8 +20,6 @@ public class UrlResponse {
 
     private String shortCode;
 
-    private String shortUrl;
-
     private OffsetDateTime createdAt;
 
     private OffsetDateTime expiresAt;
