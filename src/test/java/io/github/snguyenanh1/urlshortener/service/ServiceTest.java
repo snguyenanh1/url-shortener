@@ -4,8 +4,8 @@ import io.github.snguyenanh1.urlshortener.dto.url.UrlRequest;
 import io.github.snguyenanh1.urlshortener.dto.url.UrlResponse;
 import io.github.snguyenanh1.urlshortener.dto.url.UrlUpdate;
 import io.github.snguyenanh1.urlshortener.entity.Url;
-import io.github.snguyenanh1.urlshortener.exception.ExistingShortCodeException;
 import io.github.snguyenanh1.urlshortener.exception.ExpiredUrlException;
+import io.github.snguyenanh1.urlshortener.exception.InvalidShortCodeException;
 import io.github.snguyenanh1.urlshortener.exception.ShortCodeNotFoundException;
 import io.github.snguyenanh1.urlshortener.repository.UrlRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +37,7 @@ public class ServiceTest {
 
     @BeforeEach
     public void setUp() {
-        urlService = new UrlService(urlRepository, baseUrl);
+        urlService = new UrlService(urlRepository);
     }
 
     @Test
@@ -53,7 +53,6 @@ public class ServiceTest {
         assertThat(urlResponse).isNotNull();
         assertThat(urlResponse.getOriginalUrl()).isEqualTo(url);
         assertThat(urlResponse.getShortCode().length()).isEqualTo(7);
-        assertThat(urlResponse.getShortUrl()).contains(baseUrl);
         assertThat(urlResponse.getExpiresAt()).isEqualTo(urlResponse.getCreatedAt().plusDays(7));
     }
 
@@ -109,7 +108,7 @@ public class ServiceTest {
         urlRequest.setShortCode("ABC");
         when(urlRepository.existsByShortCode(anyString())).thenReturn(true);
 
-        Exception e = assertThrows(ExistingShortCodeException.class, () -> urlService.createShortUrl(urlRequest));
+        Exception e = assertThrows(InvalidShortCodeException.class, () -> urlService.createShortUrl(urlRequest));
         assertThat(e.getMessage()).isEqualTo("Existing short code");
     }
 
@@ -150,7 +149,6 @@ public class ServiceTest {
         assertThat(urlResponse.getOriginalUrl()).isEqualTo(originalUrl);
         assertThat(urlResponse.getExpiresAt()).isEqualTo(expiresAt);
         assertThat(urlResponse.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(urlResponse.getShortUrl()).isEqualTo(baseUrl + shortCode);
     }
 
     @Test
@@ -287,7 +285,7 @@ public class ServiceTest {
         when(urlRepository.findById(id)).thenReturn(Optional.of(existingUrl));
         when(urlRepository.existsByShortCode("existingCode")).thenReturn(true);
 
-        Exception e = assertThrows(ExistingShortCodeException.class, () -> urlService.updateShortUrl(urlUpdate));
+        Exception e = assertThrows(InvalidShortCodeException.class, () -> urlService.updateShortUrl(urlUpdate));
         assertThat(e.getMessage()).isEqualTo("Duplicate short code");
     }
 

@@ -16,6 +16,5 @@ jobs:
           distribution: "microsoft"
           java-version: "17"
           cache: "maven"
-      - name: Run unit test
-        run: mvn test
-
+      - name: Run test
+        run: mvn verify -Dspring.profiles.active=test
