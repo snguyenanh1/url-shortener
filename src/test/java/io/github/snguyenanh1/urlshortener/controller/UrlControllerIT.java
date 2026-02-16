@@ -6,7 +6,6 @@ import io.github.snguyenanh1.urlshortener.dto.url.UrlRequest;
 import io.github.snguyenanh1.urlshortener.dto.url.UrlUpdate;
 import io.github.snguyenanh1.urlshortener.entity.Url;
 import io.github.snguyenanh1.urlshortener.repository.UrlRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +16,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-
 import java.time.OffsetDateTime;
-import java.util.List;
 
 import static org.hamcrest.Matchers.hasLength;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
