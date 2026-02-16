@@ -51,7 +51,7 @@ public class UrlService {
         if (url.getExpiresAt() == null) {
             url.setExpiresAt(url.getCreatedAt().plusDays(7));
         }
-        urlRepository.save(url);
+        url = urlRepository.save(url);
         return mapToUrlResponse(url);
     }
 
@@ -85,7 +85,7 @@ public class UrlService {
                 && urlUpdate.getExpiresAt().isAfter(OffsetDateTime.now())) {
             url.setExpiresAt(urlUpdate.getExpiresAt());
         }
-        urlRepository.save(url);
+        url = urlRepository.save(url);
         return mapToUrlResponse(url);
     }
 
