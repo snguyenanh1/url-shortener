@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS url
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+    url        VARCHAR(255) NOT NULL,
+    short_code VARCHAR(10)  NOT NULL UNIQUE,
+    created_at TIMESTAMP,
+    expires_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS "user"
+(
+    id       BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email    VARCHAR(255) NOT NULL,
+    name     VARCHAR(255) NOT NULL,
+    role     VARCHAR(50)  NOT NULL
+);

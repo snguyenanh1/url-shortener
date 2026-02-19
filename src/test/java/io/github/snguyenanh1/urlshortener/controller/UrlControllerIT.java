@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,6 +29,7 @@ import static org.hamcrest.Matchers.is;
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         classes = UrlShortenerApplication.class
 )
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 public class UrlControllerIT {
 
@@ -49,7 +51,7 @@ public class UrlControllerIT {
     @Test
     @Sql(scripts = "classpath:data-test.sql")
     public void givenShortCode_whenGetUrl_thenStatus200() throws Exception {
-        mockMvc.perform(get("/api/v1/short-url/fb123")
+        mockMvc.perform(get("/api/v1/urls/fb123")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content()
@@ -64,7 +66,7 @@ public class UrlControllerIT {
         UrlRequest urlRequest = new UrlRequest();
         urlRequest.setUrl("https://google.com");
         String json = objectMapper.writeValueAsString(urlRequest);
-        mockMvc.perform(post("/api/v1/short-url")
+        mockMvc.perform(post("/api/v1/urls")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -85,7 +87,7 @@ public class UrlControllerIT {
         urlUpdate.setExpiresAt(now.plusDays(30));
 
         String json = objectMapper.writeValueAsString(urlUpdate);
-        mockMvc.perform(patch("/api/v1/short-url")
+        mockMvc.perform(patch("/api/v1/urls")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isOk())
@@ -98,7 +100,7 @@ public class UrlControllerIT {
     @Test
     @Sql(scripts = "classpath:data-test.sql")
     public void givenShortCode_whenDeleteUrl_thenStatus204() throws Exception {
-        mockMvc.perform(delete("/api/v1/short-url/fb123")
+        mockMvc.perform(delete("/api/v1/urls/fb123")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
@@ -110,7 +112,7 @@ public class UrlControllerIT {
         urlRequest.setUrl("abcxyz");
         String json = objectMapper.writeValueAsString(urlRequest);
 
-        mockMvc.perform(post("/api/v1/short-url")
+        mockMvc.perform(post("/api/v1/urls")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest());
@@ -123,7 +125,7 @@ public class UrlControllerIT {
         urlRequest.setUrl("");
         String json = objectMapper.writeValueAsString(urlRequest);
 
-        mockMvc.perform(post("/api/v1/short-url")
+        mockMvc.perform(post("/api/v1/urls")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest());
@@ -136,7 +138,7 @@ public class UrlControllerIT {
         urlUpdate.setShortCode("newcode");
 
         String json = objectMapper.writeValueAsString(urlUpdate);
-        mockMvc.perform(patch("/api/v1/short-url")
+        mockMvc.perform(patch("/api/v1/urls")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest());
@@ -146,7 +148,7 @@ public class UrlControllerIT {
     @Test
     @Sql(scripts = "classpath:data-test.sql")
     public void givenExpiredUrl_whenGetUrl_thenStatus410() throws Exception {
-        mockMvc.perform(get("/api/v1/short-url/yt456")
+        mockMvc.perform(get("/api/v1/urls/yt456")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isGone());
     }
@@ -154,7 +156,7 @@ public class UrlControllerIT {
     @Test
     @Sql(scripts = "classpath:data-test.sql")
     public void givenNonExistentShortCode_whenGetUrl_thenStatus404() throws Exception {
-        mockMvc.perform(get("/api/v1/short-url/notexist")
+        mockMvc.perform(get("/api/v1/urls/notexist")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
@@ -162,7 +164,7 @@ public class UrlControllerIT {
     @Test
     @Sql(scripts = "classpath:data-test.sql")
     public void givenNonExistentShortCode_whenDeleteUrl_thenStatus404() throws Exception {
-        mockMvc.perform(delete("/api/v1/short-url/notexist")
+        mockMvc.perform(delete("/api/v1/urlsnotexist")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
@@ -175,7 +177,7 @@ public class UrlControllerIT {
         urlRequest.setShortCode("fb123");
 
         String json = objectMapper.writeValueAsString(urlRequest);
-        mockMvc.perform(post("/api/v1/short-url")
+        mockMvc.perform(post("/api/v1/urls")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest());
@@ -189,7 +191,7 @@ public class UrlControllerIT {
         urlUpdate.setShortCode("newcode");
 
         String json = objectMapper.writeValueAsString(urlUpdate);
-        mockMvc.perform(patch("/api/v1/short-url")
+        mockMvc.perform(patch("/api/v1/urls")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isNotFound());

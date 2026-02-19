@@ -18,6 +18,9 @@ import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.Optional;
 
+/**
+ * The type Url service.
+ */
 @Service
 public class UrlService {
 
@@ -26,11 +29,22 @@ public class UrlService {
 
     //TODO: authentication logic
 
+    /**
+     * Instantiates a new Url service.
+     *
+     * @param urlRepository the url repository
+     */
     @Autowired
     public UrlService(UrlRepository urlRepository) {
         this.urlRepository = urlRepository;
     }
 
+    /**
+     * Create short url response.
+     *
+     * @param urlRequest the url request
+     * @return the url response
+     */
     @Transactional
     public UrlResponse createShortUrl(UrlRequest urlRequest) {
         Url url = mapToUrl(urlRequest);
@@ -55,6 +69,12 @@ public class UrlService {
         return mapToUrlResponse(url);
     }
 
+    /**
+     * Gets short url.
+     *
+     * @param shortCode the short code
+     * @return the short url
+     */
     @Transactional
     public UrlResponse getShortUrl(String shortCode) {
         Optional<Url> optionalUrl = urlRepository.findByShortCode(shortCode);
@@ -69,6 +89,12 @@ public class UrlService {
         }
     }
 
+    /**
+     * Update short url response.
+     *
+     * @param urlUpdate the url update
+     * @return the url response
+     */
     @Transactional
     public UrlResponse updateShortUrl(UrlUpdate urlUpdate) {
         Url url = urlRepository.findById(urlUpdate.getId())
@@ -89,6 +115,11 @@ public class UrlService {
         return mapToUrlResponse(url);
     }
 
+    /**
+     * Delete short url.
+     *
+     * @param shortCode the short code
+     */
     @Transactional
     public void deleteShortUrl(String shortCode) {
         Url url = urlRepository.findByShortCode(shortCode)

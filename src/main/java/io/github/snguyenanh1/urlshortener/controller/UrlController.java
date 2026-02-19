@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/short-url")
+@RequestMapping("/api/v1/urls")
 public class UrlController {
     private final UrlService urlService;
 

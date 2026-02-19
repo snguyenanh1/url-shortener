@@ -14,7 +14,7 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Data
-@Table(name = "urls")
+@Table(name = "url")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
