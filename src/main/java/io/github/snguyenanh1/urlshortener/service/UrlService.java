@@ -196,13 +196,6 @@ public class UrlService {
         return urls.map(url -> mapToUrlResponse(url, user));
     }
 
-    @Transactional
-    public void deleteShortUrl(String shortCode) {
-        Url url = urlRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new ShortCodeNotFoundException("No such short code"));
-        urlRepository.delete(url);
-    }
-
     private Url mapToUrl(UrlRequest urlRequest) {
         return Url.builder()
                 .url(urlRequest.getUrl())
@@ -222,7 +215,7 @@ public class UrlService {
                 .expiresAt(url.getExpiresAt())
                 .createdBy(url.getUser() == null ? null : url.getUser().getId())
                 .clicks( (isOwner || isAdmin) ? url.getClicks() : null)
-                .expiresAt(url.getExpiresAt()).build();
+                .build();
     }
 
     private String generateShortCode(String originalUrl) {

@@ -135,28 +135,4 @@ public class UrlController {
         return ResponseEntity.ok(urlResponsePage);
     }
 
-    @GetMapping("/{shortCode}")
-    public ResponseEntity<UrlResponse> getShortUrl(@PathVariable String shortCode) {
-        UrlResponse urlResponse = urlService.getShortUrl(shortCode);
-        return ResponseEntity.ok(urlResponse);
-    }
-
-    @PostMapping()
-    public ResponseEntity<UrlResponse> createShortUrl(@RequestBody @Valid UrlRequest urlRequest) {
-        UrlResponse urlResponse = urlService.createShortUrl(urlRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(urlResponse);
-    }
-
-    @PatchMapping()
-    public ResponseEntity<UrlResponse> updateShortUrl(@RequestBody @Valid UrlUpdate urlUpdate) {
-        UrlResponse urlResponse = urlService.updateShortUrl(urlUpdate);
-        return ResponseEntity.ok(urlResponse);
-    }
-
-    @DeleteMapping("/{shortCode}")
-    public ResponseEntity<UrlResponse> deleteShortUrl(@PathVariable String shortCode) {
-        urlService.deleteShortUrl(shortCode);
-        return ResponseEntity.noContent().build();
-    }
-
 }
