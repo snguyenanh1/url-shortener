@@ -41,7 +41,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             InvalidShortCodeException.class,
             InvalidUrlException.class,
             InvalidUsernameException.class,
-            InvalidEmailException.class,
+            InvalidEmailException.class
     })
     public ResponseEntity<Object> handleInvalidException(RuntimeException ex, WebRequest request) {
         log.warn(ex.getMessage());
@@ -86,7 +86,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return super.handleExceptionInternal(ex, bodyOfResponse,
                 new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
-
 
     @Override
     public ResponseEntity<Object> handleMethodArgumentNotValid(

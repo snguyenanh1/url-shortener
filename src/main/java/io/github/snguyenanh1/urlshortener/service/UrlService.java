@@ -196,6 +196,16 @@ public class UrlService {
         return urls.map(url -> mapToUrlResponse(url, user));
     }
 
+        return mapToUrlResponse(url);
+    }
+
+    @Transactional
+    public void deleteShortUrl(String shortCode) {
+        Url url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new ShortCodeNotFoundException("No such short code"));
+        urlRepository.delete(url);
+    }
+
     private Url mapToUrl(UrlRequest urlRequest) {
         return Url.builder()
                 .url(urlRequest.getUrl())
@@ -208,6 +218,7 @@ public class UrlService {
         Long ownerId = (url.getUser() != null) ? url.getUser().getId() : null;
         boolean isAdmin = user != null && user.getRole().equals(UserRole.ADMIN);
         boolean isOwner = user != null && Objects.equals(user.getId(), ownerId);
+    private UrlResponse mapToUrlResponse(Url url) {
         return UrlResponse.builder()
                 .originalUrl(url.getUrl())
                 .shortCode(url.getShortCode())
@@ -216,6 +227,7 @@ public class UrlService {
                 .createdBy(url.getUser() == null ? null : url.getUser().getId())
                 .clicks( (isOwner || isAdmin) ? url.getClicks() : null)
                 .build();
+                .expiresAt(url.getExpiresAt()).build();
     }
 
     private String generateShortCode(String originalUrl) {
