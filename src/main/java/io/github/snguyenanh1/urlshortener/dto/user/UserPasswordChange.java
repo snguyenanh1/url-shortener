@@ -8,13 +8,13 @@ import lombok.Data;
  */
 @Data
 public class UserPasswordChange {
-    @Size(min = 4, max = 20, message = "Old password length must be in between 4 and 20")
+    @Size(min = 4, message = "Password length must be larger than 4")
     private String oldPassword;
 
-    @Size(min = 4, max = 20, message = "New password length must be in between 4 and 20")
+    @Size(min = 4, message = "Password length must be larger than 4")
     private String newPassword;
 
-    @Size(min = 4, max = 20, message = "New password length must be in between 4 and 20")
+    @Size(min = 4, message = "Password length must be larger than 4")
     private String confirmPassword;
 
 }

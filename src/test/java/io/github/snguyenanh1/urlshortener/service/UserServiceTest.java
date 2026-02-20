@@ -14,7 +14,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -176,7 +182,7 @@ public class UserServiceTest {
 
 
     @Test
-    public void changePassword_ValidData_ReturnUserResponse() {
+    public void changePassword_ValidData_PasswordChangedSuccessfully() {
         UserPasswordChange passwordChange = new UserPasswordChange();
         passwordChange.setOldPassword("oldPass");
         passwordChange.setNewPassword("newPass1");
@@ -186,11 +192,10 @@ public class UserServiceTest {
         when(passwordEncoder.encode("newPass1")).thenReturn("encodedNewPass");
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
-        UserResponse response = userService.changePassword(testUser, passwordChange);
+        userService.changePassword(testUser, passwordChange);
 
         verify(userRepository, times(1)).save(any(User.class));
-        assertThat(response).isNotNull();
-        assertThat(response.getUsername()).isEqualTo("testuser");
+        assertThat(testUser.getPassword()).isEqualTo("encodedNewPass");
     }
 
     @Test
@@ -400,7 +405,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void changeAccountPassword_ValidData_ReturnUserResponse() {
+    public void changeAccountPassword_ValidData_PasswordChangedSuccessfully() {
         AdminUserPasswordChange passwordChange = new AdminUserPasswordChange();
         passwordChange.setNewPassword("newPass1");
         passwordChange.setConfirmPassword("newPass1");
@@ -409,11 +414,10 @@ public class UserServiceTest {
         when(passwordEncoder.encode("newPass1")).thenReturn("encodedNew");
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
-        UserResponse response = userService.changeAccountPassword(adminUser, 2L, passwordChange);
+        userService.changeAccountPassword(adminUser, 2L, passwordChange);
 
         verify(userRepository, times(1)).save(any(User.class));
-        assertThat(response).isNotNull();
-        assertThat(response.getUsername()).isEqualTo("target");
+        assertThat(targetUser.getPassword()).isEqualTo("encodedNew");
     }
 
     @Test
@@ -426,11 +430,10 @@ public class UserServiceTest {
         when(passwordEncoder.encode("newPass1")).thenReturn("encodedNew");
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
-        UserResponse response = userService.changeAccountPassword(testUser, 2L, passwordChange);
+        userService.changeAccountPassword(testUser, 2L, passwordChange);
 
         verify(userRepository, times(1)).save(any(User.class));
-        assertThat(response).isNotNull();
-        assertThat(response.getUsername()).isEqualTo("target");
+        assertThat(targetUser.getPassword()).isEqualTo("encodedNew");
     }
 
     @Test
@@ -510,6 +513,63 @@ public class UserServiceTest {
                 () -> userService.deleteAccount(adminUser, 3L));
         assertThat(e.getMessage()).isEqualTo("Cannot delete another admin account");
         verify(userRepository, never()).delete(any(User.class));
+    }
+
+
+    @Test
+    public void getUserByUsername_ExistingUser_ReturnUserResponse() {
+        when(userRepository.findByUsername("testuser"))
+                .thenReturn(Optional.of(testUser));
+
+        UserResponse response = userService.getUserByUsername("testuser");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getUsername()).isEqualTo("testuser");
+    }
+
+    @Test
+    public void getUserByUsername_NotFound_ThrowUsernameNotFoundException() {
+        when(userRepository.findByUsername("unknown"))
+                .thenReturn(Optional.empty());
+
+        Exception e = assertThrows(UsernameNotFoundException.class,
+                () -> userService.getUserByUsername("unknown"));
+        assertThat(e.getMessage()).contains("unknown");
+    }
+
+    @Test
+    public void getUserById_ExistingUser_ReturnUserResponse() {
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(testUser));
+
+        UserResponse response = userService.getUserById(1L);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getUsername()).isEqualTo("testuser");
+    }
+
+    @Test
+    public void getUserById_NotFound_ThrowUsernameNotFoundException() {
+        when(userRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        Exception e = assertThrows(UsernameNotFoundException.class,
+                () -> userService.getUserById(99L));
+        assertThat(e.getMessage()).contains("99");
+    }
+
+    @Test
+    public void getAll_ReturnPageOfUsers() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> userPage = new PageImpl<>(List.of(testUser, adminUser));
+        when(userRepository.findAll(pageable)).thenReturn(userPage);
+
+        Page<UserResponse> result = userService.getAll(pageable);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTotalElements()).isEqualTo(2);
     }
 }
 

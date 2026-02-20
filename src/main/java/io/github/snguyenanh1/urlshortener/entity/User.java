@@ -5,10 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,7 +15,7 @@ import java.util.List;
 
 @Data
 @Entity
-@Table(name="users")
+@Table(name="user")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,7 +30,7 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Size(min = 4, max = 30, message = "Password length must be in between 4 and 30")
+    @Size(min = 4, message = "Password length must be larger than 4")
     @Column(nullable = false)
     private String password;
 
@@ -46,7 +43,12 @@ public class User implements UserDetails {
 
     @NotNull
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    @OneToMany(mappedBy = "user")
+    @ToString.Exclude
+    private List<Url> urls;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

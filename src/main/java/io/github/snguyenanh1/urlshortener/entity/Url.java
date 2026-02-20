@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.validator.constraints.URL;
 
 import java.time.OffsetDateTime;
@@ -41,5 +38,12 @@ public class Url {
     @NotNull(message = "Expiration date must not be null")
     @Column(nullable = false)
     private OffsetDateTime expiresAt;
+
+    private Long clicks;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    @ToString.Exclude
+    private User user;
 
 }

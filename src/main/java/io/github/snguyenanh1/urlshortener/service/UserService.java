@@ -1,12 +1,16 @@
 package io.github.snguyenanh1.urlshortener.service;
 
+import io.github.snguyenanh1.urlshortener.dto.url.UrlResponse;
 import io.github.snguyenanh1.urlshortener.dto.user.*;
+import io.github.snguyenanh1.urlshortener.entity.Url;
 import io.github.snguyenanh1.urlshortener.entity.User;
 import io.github.snguyenanh1.urlshortener.enums.UserRole;
 import io.github.snguyenanh1.urlshortener.exception.*;
 import io.github.snguyenanh1.urlshortener.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +37,11 @@ public class UserService {
         return userRepository.findByUsername(username)
                 .map(UserService::mapToUserDetailResponse)
                 .orElseThrow(() -> new UsernameNotFoundException("User with " + username + " not found"));
+    }
+    public UserResponse getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(UserService::mapToUserDetailResponse)
+                .orElseThrow(() -> new UsernameNotFoundException("User with " + id + " not found"));
     }
 
     @Transactional
@@ -67,7 +76,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse changePassword(@AuthenticationPrincipal User user, UserPasswordChange userPasswordChange) {
+    public void changePassword(@AuthenticationPrincipal User user, UserPasswordChange userPasswordChange) {
         if (!userPasswordChange.getNewPassword().equals(userPasswordChange.getConfirmPassword())) {
             throw new InvalidPasswordException("Passwords do not match");
         }
@@ -76,7 +85,6 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(userPasswordChange.getNewPassword()));
         user = userRepository.save(user);
-        return mapToUserDetailResponse(user);
     }
 
     @Transactional
@@ -132,7 +140,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse changeAccountPassword(@AuthenticationPrincipal User user, Long userId,
+    public void changeAccountPassword(@AuthenticationPrincipal User user, Long userId,
                                               AdminUserPasswordChange adminUserPasswordChange) {
         User toBeChanged = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -144,7 +152,6 @@ public class UserService {
         }
         toBeChanged.setPassword(passwordEncoder.encode(adminUserPasswordChange.getNewPassword()));
         toBeChanged = userRepository.save(toBeChanged);
-        return mapToUserDetailResponse(toBeChanged);
     }
 
     @Transactional
@@ -157,12 +164,18 @@ public class UserService {
         userRepository.delete(toBeDeleted);
     }
 
+    public Page<UserResponse> getAll(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
+        return users.map(UserService::mapToUserDetailResponse);
+    }
+
     private static UserResponse mapToUserDetailResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .name(user.getName())
+                .role(user.getRole())
                 .build();
     }
 

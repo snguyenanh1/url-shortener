@@ -16,7 +16,7 @@ import java.util.function.Function;
 
 @Component
 public class JwtService {
-    private final String JWT_SECRET = "2c32590fba6982b958933173c2044eae";
+    private final String JWT_SECRET = "Y2MyNTkwZmJhNjk4MmI5NTg5MzMxNzNjMjA0NGVhZTEyMzQ1Njc4";
     private final Long EXPIRATION_TIME = 604800000L;
 
     public String generateToken(Long id) {

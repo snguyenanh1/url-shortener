@@ -5,9 +5,9 @@ import lombok.Data;
 
 @Data
 public class AdminUserPasswordChange {
-    @Size(min = 4, max = 20, message = "New password length must be in between 4 and 20")
+    @Size(min = 4, message = "Password length must be larger than 4")
     private String newPassword;
 
-    @Size(min = 4, max = 20, message = "New password length must be in between 4 and 20")
+    @Size(min = 4, message = "Password length must be larger than 4")
     private String confirmPassword;
 }
