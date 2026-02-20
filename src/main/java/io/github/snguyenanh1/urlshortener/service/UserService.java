@@ -1,8 +1,6 @@
 package io.github.snguyenanh1.urlshortener.service;
 
-import io.github.snguyenanh1.urlshortener.dto.url.UrlResponse;
 import io.github.snguyenanh1.urlshortener.dto.user.*;
-import io.github.snguyenanh1.urlshortener.entity.Url;
 import io.github.snguyenanh1.urlshortener.entity.User;
 import io.github.snguyenanh1.urlshortener.enums.UserRole;
 import io.github.snguyenanh1.urlshortener.exception.*;

@@ -1,7 +1,6 @@
 package io.github.snguyenanh1.urlshortener.dto.user;
 
 import io.github.snguyenanh1.urlshortener.enums.UserRole;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

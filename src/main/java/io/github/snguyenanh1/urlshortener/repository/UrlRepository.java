@@ -1,8 +1,6 @@
 package io.github.snguyenanh1.urlshortener.repository;
 
 import io.github.snguyenanh1.urlshortener.entity.Url;
-import jakarta.validation.constraints.NotBlank;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
