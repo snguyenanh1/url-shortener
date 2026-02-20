@@ -5,6 +5,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,6 +26,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({
             ShortCodeNotFoundException.class,
             UrlNotFoundException.class,
+            UserNotFoundException.class
     })
     public ResponseEntity<Object> handleNotFoundException(RuntimeException ex, WebRequest request) {
         log.warn(ex.getMessage());
@@ -36,7 +39,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({
             InvalidExpirationDateException.class,
             InvalidShortCodeException.class,
-            InvalidUrlException.class
+            InvalidUrlException.class,
+            InvalidUsernameException.class,
+            InvalidEmailException.class,
     })
     public ResponseEntity<Object> handleInvalidException(RuntimeException ex, WebRequest request) {
         log.warn(ex.getMessage());
@@ -58,6 +63,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({
+            InvalidPasswordException.class,
+            AccessDeniedException.class,
+            BadCredentialsException.class,
+            AuthorizationDeniedException.class,
+    })
+    public ResponseEntity<Object> handleSecurityException(RuntimeException ex, WebRequest request) {
+        log.warn(ex.getMessage());
+        var bodyOfResponse = Map.of("error", "403",
+                "message", ex.getMessage());
+        return super.handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.FORBIDDEN, request);
+    }
+
+    @ExceptionHandler({
             Exception.class
     })
     public ResponseEntity<Object> handleOtherException(Exception ex, WebRequest request) {
@@ -67,6 +86,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return super.handleExceptionInternal(ex, bodyOfResponse,
                 new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
+
 
     @Override
     public ResponseEntity<Object> handleMethodArgumentNotValid(

@@ -24,4 +24,8 @@ public class UrlResponse {
 
     private OffsetDateTime expiresAt;
 
+    private Long createdBy;
+
+    private Long clicks;
+
 }
