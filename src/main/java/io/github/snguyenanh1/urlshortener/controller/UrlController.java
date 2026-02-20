@@ -26,18 +26,6 @@ public class UrlController {
      *
      * @param urlService the url service
      */
-import io.github.snguyenanh1.urlshortener.service.UrlService;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-@RestController
-@RequestMapping("/api/v1/short-url")
-public class UrlController {
-    private final UrlService urlService;
-
     @Autowired
     public UrlController(UrlService urlService) {
         this.urlService = urlService;
