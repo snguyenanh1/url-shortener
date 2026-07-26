@@ -4,7 +4,7 @@ on:
     workflows: ["CI"]
     types:
       - completed
-    branch: ["main"]
+    branches: ["main"]
 jobs:
   upload:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -31,4 +31,6 @@ jobs:
           aws-region: ap-southeast-1
           role-to-assume: arn:aws:iam::805393737102:role/githubaction-cicd-uploadjar
       - name: Upload file to S3
-        run: aws s3 cp ./target/app.jar s3://url-shortner-s3-805393737102-ap-southeast-1-an/
+        run: | 
+          cp ./target/url-shortener*.jar ./target/app.jar 
+          aws s3 cp ./target/app.jar s3://url-shortner-s3-805393737102-ap-southeast-1-an/
