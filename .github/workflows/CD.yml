@@ -1,0 +1,34 @@
+name: CD.yml
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branch: ["main"]
+jobs:
+  upload:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "microsoft"
+          java-version: "17"
+          cache: "maven"
+      - name: Get dependency
+        run: mvn dependency:go-offline -B
+      - name: Build
+        run: mvn package -DskipTests -B
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-southeast-1
+          role-to-assume: arn:aws:iam::805393737102:role/githubaction-cicd-uploadjar
+      - name: Upload file to S3
+        run: aws s3 cp ./target/app.jar s3://url-shortner-s3-805393737102-ap-southeast-1-an/
