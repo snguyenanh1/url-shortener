@@ -6,7 +6,7 @@ on:
       - completed
     branches: ["main"]
 jobs:
-  upload:
+  deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
@@ -21,8 +21,6 @@ jobs:
           distribution: "microsoft"
           java-version: "17"
           cache: "maven"
-      - name: Get dependency
-        run: mvn dependency:go-offline -B
       - name: Build
         run: mvn package -DskipTests -B
       - name: Configure AWS credentials
@@ -30,7 +28,12 @@ jobs:
         with:
           aws-region: ap-southeast-1
           role-to-assume: arn:aws:iam::805393737102:role/githubaction-cicd-uploadjar
-      - name: Upload file to S3
-        run: | 
-          cp ./target/url-shortener*.jar ./target/app.jar 
-          aws s3 cp ./target/app.jar s3://url-shortner-s3-805393737102-ap-southeast-1-an/
+      - name: Upload jar to S3
+        run: |
+          cp ./target/url-shortener*.jar ./target/app.jar
+          aws s3 cp ./target/app.jar s3://url-shortner-s3-805393737102-ap-southeast-1-an/app.jar
+      - name: Replace EC2 instances (they pull the new jar at boot)
+        run: |
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name url-shortener-asg \
+            --preferences '{"MinHealthyPercentage":100,"MaxHealthyPercentage":200}'
